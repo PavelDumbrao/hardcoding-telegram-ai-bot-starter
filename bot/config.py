@@ -32,6 +32,10 @@ def load_settings() -> Settings:
         raise RuntimeError("BOT_TOKEN не задан. Добавь его локально в .env")
     if not ai_api_key:
         raise RuntimeError("AI_API_KEY не задан. Добавь его локально в .env")
+    if not os.getenv("AI_BASE_URL", "").strip():
+        raise RuntimeError("AI_BASE_URL не задан. Укажи адрес OpenAI-compatible API в .env")
+    if not os.getenv("AI_MODEL", "").strip():
+        raise RuntimeError("AI_MODEL не задан. Укажи модель в .env")
     return Settings(
         bot_token=bot_token,
         admin_ids=_parse_admin_ids(os.getenv("ADMIN_IDS", "")),
@@ -41,5 +45,7 @@ def load_settings() -> Settings:
         ai_api_key=ai_api_key,
         ai_model=os.getenv("AI_MODEL", "").strip(),
         ai_history_limit=max(2, int(os.getenv("AI_HISTORY_LIMIT", "12"))),
-        system_prompt=os.getenv("SYSTEM_PROMPT", "Ты полезный ассистент. Отвечай кратко и по делу."),
+        system_prompt=os.getenv(
+            "SYSTEM_PROMPT", "Ты полезный ассистент. Отвечай кратко и по делу."
+        ),
     )

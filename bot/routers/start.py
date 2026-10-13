@@ -1,4 +1,5 @@
-from aiogram import Router
+from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
@@ -8,6 +9,7 @@ from bot.db import clear_messages, upsert_user
 from bot.keyboards import main_keyboard
 
 router = Router(name="start")
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 
 @router.message(CommandStart())

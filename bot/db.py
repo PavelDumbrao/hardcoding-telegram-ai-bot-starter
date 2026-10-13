@@ -23,6 +23,7 @@ async def init_db(path: Path) -> None:
                 content TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages (telegram_id, id);
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 telegram_id INTEGER,
@@ -87,4 +88,22 @@ async def recent_messages(
 async def clear_messages(path: Path, telegram_id: int) -> None:
     async with aiosqlite.connect(path) as db:
         await db.execute("DELETE FROM messages WHERE telegram_id=?", (telegram_id,))
+        await db.commit()
+
+
+async def trim_messages(path: Path, telegram_id: int, limit: int) -> None:
+    """Оставить последние limit реплик одного пользователя, не затрагивая других."""
+    async with aiosqlite.connect(path) as db:
+        await db.execute(
+            """
+            DELETE FROM messages
+            WHERE telegram_id=?
+              AND id NOT IN (
+                SELECT id FROM messages
+                WHERE telegram_id=?
+                ORDER BY id DESC LIMIT ?
+              )
+            """,
+            (telegram_id, telegram_id, max(1, limit)),
+        )
         await db.commit()
